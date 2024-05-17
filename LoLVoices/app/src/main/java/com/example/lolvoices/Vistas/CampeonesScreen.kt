@@ -27,10 +27,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +51,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +59,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -69,6 +73,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.lolvoices.AudioPlayer
 import com.example.lolvoices.R
+import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.dataClasses.ChampionData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -79,6 +84,11 @@ import kotlinx.coroutines.launch
 fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<ChampionData>) {
 
     var searchText by remember { mutableStateOf("") }
+    var isSearchVisible by remember { mutableStateOf(false) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var selectedAudio by remember { mutableStateOf<ChampionAudio?>(null) }
+    val scope = rememberCoroutineScope()
+    var audioAleatorio by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -90,43 +100,51 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                 ),
                 modifier = Modifier.background(Color(0xFF021119)),
                 title = {
-                    TextField(
-                        value = searchText,
-                        onValueChange = { searchText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = TextStyle(color = Color.White),
-                        placeholder = { Text("Buscar...", color = Color.White) },
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.small,
-                        leadingIcon = {
-                            IconButton(onClick = { /* Handle search action */ }) {
-                                Icon(Icons.Default.Search, contentDescription = "Buscar")
-                            }
-                        },
-                        trailingIcon = {
-                            IconButton(onClick = { /* Handle clear action */ }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Limpiar")
-                            }
-                        }
-                    )
+                    if (isSearchVisible) {
+                        TextField(
+                            value = searchText,
+                            onValueChange = { searchText = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = TextStyle(color = Color.White),
+                            placeholder = { Text("Buscar...", color = Color.White) },
+                            singleLine = true,
+                            shape = MaterialTheme.shapes.small,
+                            leadingIcon = {
+                                IconButton(onClick = { isSearchVisible = false; searchText = "" }) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Limpiar", tint = Color.White)
+                                }
+                            },
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                            )
+                        )
+                    } else {
+                        Text("LoLVoices", color = Color.White)  // Cambia esto al título que desees mostrar
+                    }
                 },
                 actions = {
-
-                        IconButton(onClick = { navController.navigate("FavoritosScreen") }) {
-                            Icon(Icons.Default.Add, contentDescription = "Agregar", tint = Color.White)
+                    if (!isSearchVisible) {
+                        IconButton(onClick = { isSearchVisible = true }) {
+                            Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
                         }
-                        IconButton(onClick = { navController.navigate("JueguitoScreen") }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
-                        }
+                    }
+                    IconButton(onClick = { navController.navigate("FavoritosScreen") }) {
+                        Icon(Icons.Default.Add, contentDescription = "Agregar", tint = Color.White)
+                    }
+                    IconButton(onClick = { navController.navigate("JueguitoScreen") }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
+                    }
                 },
-            )
+
+                )
         },
         content = {
 
-            var isPlaying by remember { mutableStateOf(false) }
-
-            val scope = rememberCoroutineScope()
-            var audioAleatorio by remember { mutableStateOf("") }
+            // Filtrar la lista de campeones según el texto de búsqueda
+            val filteredCampeones = CampeonesInfo.filter {
+                it.nombre.contains(searchText, ignoreCase = true)
+            }
 
             Column (modifier = Modifier.padding(vertical = 8.dp)) {
                 Spacer(modifier = Modifier.height(60.dp))
@@ -134,6 +152,7 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     // Fondo de pantalla
+
                     Image(painter = painterResource(id = R.drawable.fondo),
                         contentDescription = "Fondo de pantalla", contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -145,7 +164,7 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
 
                     ) {
                         // LazyVerticalGrid con 3 columnas para mostrar los datos de cada tipo
-                        items(CampeonesInfo.chunked(3)) { rowData ->
+                        items(filteredCampeones.chunked(3)) { rowData ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -167,22 +186,20 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                 .clickable(
                                                     enabled = !isPlaying,
                                                     onClick = {
-                                                        val urlsCampeon = item.audios.map { it.url }
-                                                        if (urlsCampeon.isNotEmpty()) {
-                                                            audioAleatorio = urlsCampeon.random()
-                                                            isPlaying = true
-                                                            progress = 0f
-                                                            AudioPlayer(audioAleatorio) { duration ->
-                                                                scope.launch {
-                                                                    val step = 50L
-                                                                    val steps = (duration / step).toInt()
-                                                                    repeat(steps) {
-                                                                        delay(step)
-                                                                        progress += 1f / steps
-                                                                    }
-                                                                    isPlaying = false
-                                                                    progress = 0f
+                                                        val randomAudio = it.audios.random()
+                                                        selectedAudio = randomAudio
+                                                        isPlaying = true
+                                                        progress = 0f
+                                                        AudioPlayer(randomAudio.url) { duration ->
+                                                            scope.launch {
+                                                                val step = 50L
+                                                                val steps = (duration / step).toInt()
+                                                                repeat(steps) {
+                                                                    delay(step)
+                                                                    progress += 1f / steps
                                                                 }
+                                                                progress = 0f
+                                                                isPlaying = false
                                                             }
                                                         }
                                                     }
@@ -201,7 +218,10 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                         .border(
                                                             width = 1.dp,
                                                             brush = Brush.linearGradient(
-                                                                colors = listOf(Color(0xFFC0A17B), Color(0xFFD4AF37))
+                                                                colors = listOf(
+                                                                    Color(0xFFC0A17B),
+                                                                    Color(0xFFD4AF37)
+                                                                )
                                                             ),
                                                             shape = CircleShape
                                                         )
@@ -214,7 +234,10 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                             .padding(2.dp) // Espacio para crear el hueco
                                                             .background(
                                                                 brush = Brush.linearGradient(
-                                                                    colors = listOf(Color(0xFFC0A17B), Color(0xFFD4AF37))
+                                                                    colors = listOf(
+                                                                        Color(0xFFC0A17B),
+                                                                        Color(0xFFD4AF37)
+                                                                    )
                                                                 ),
                                                                 shape = CircleShape
                                                             )
@@ -242,14 +265,17 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                     startAngle = -90f,
                                                     sweepAngle = 360 * progress,
                                                     useCenter = false,
-                                                    style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                                    style = Stroke(
                                                         width = 8.dp.toPx(),
                                                         cap = StrokeCap.Round
                                                     )
                                                 )
                                             }
                                         }
-                                    } ?: Spacer(modifier = Modifier.weight(1f).aspectRatio(1f).padding(8.dp))
+                                    } ?: Spacer(modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .padding(8.dp))
                                 }
                             }
                         }
@@ -257,5 +283,46 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                 }
             }
         },
+        bottomBar = {
+            if (selectedAudio != null) {
+                Column {
+                    Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
+                    BottomAudioBar(
+                        audio = selectedAudio!!,
+                        onFavoriteClick = { /* Handle favorite action */ },
+                        onStopClick = {
+                            isPlaying = false
+                            selectedAudio = null
+                        }
+                    )
+                }
+            }
+        }
     )
+}
+@Composable
+fun BottomAudioBar(audio: ChampionAudio, onFavoriteClick: () -> Unit, onStopClick: () -> Unit) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF021119))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = audio.nombre,
+            color = Color.White,
+            modifier = Modifier.weight(1f)
+        )
+        Row {
+            IconButton(onClick = onFavoriteClick) {
+                Icon(Icons.Default.Favorite, contentDescription = "Agregar a Favoritos", tint = Color.White)
+            }
+            IconButton(onClick = onStopClick) {
+                Icon(Icons.Default.Clear, contentDescription = "Parar", tint = Color.White)
+            }
+        }
+    }
 }
