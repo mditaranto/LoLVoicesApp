@@ -1,10 +1,6 @@
 package com.example.lolvoices.Vistas
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,17 +18,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +38,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,24 +50,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
+import com.example.lolvoices.AgregarFav
 import com.example.lolvoices.AudioPlayer
+import com.example.lolvoices.MainActivity
 import com.example.lolvoices.R
 import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.dataClasses.ChampionData
+import com.example.lolvoices.room.Entidades.Audio
+import com.example.lolvoices.room.Entidades.Campeon
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -83,12 +77,22 @@ import kotlinx.coroutines.launch
 @Composable
 fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<ChampionData>) {
 
+    val audioViewModel: AgregarFav = viewModel()
+    val coroutineScope = rememberCoroutineScope()
+
     var searchText by remember { mutableStateOf("") }
     var isSearchVisible by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(false) }
     var selectedAudio by remember { mutableStateOf<ChampionAudio?>(null) }
     val scope = rememberCoroutineScope()
-    var audioAleatorio by remember { mutableStateOf("") }
+    var selectedCampeon by remember { mutableStateOf<ChampionData?>(null) }
+    var isFavorito by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedAudio) {
+        selectedAudio?.let {
+            isFavorito = audioViewModel.comprobarFavorito(selectedAudio!!)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -187,13 +191,15 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                     enabled = !isPlaying,
                                                     onClick = {
                                                         val randomAudio = it.audios.random()
+                                                        selectedCampeon = it
                                                         selectedAudio = randomAudio
                                                         isPlaying = true
                                                         progress = 0f
                                                         AudioPlayer(randomAudio.url) { duration ->
                                                             scope.launch {
                                                                 val step = 50L
-                                                                val steps = (duration / step).toInt()
+                                                                val steps =
+                                                                    (duration / step).toInt()
                                                                 repeat(steps) {
                                                                     delay(step)
                                                                     progress += 1f / steps
@@ -285,15 +291,25 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
         },
         bottomBar = {
             if (selectedAudio != null) {
+
                 Column {
                     Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
                     BottomAudioBar(
                         audio = selectedAudio!!,
-                        onFavoriteClick = { /* Handle favorite action */ },
-                        onStopClick = {
-                            isPlaying = false
-                            selectedAudio = null
-                        }
+                        onFavoriteClick = {
+                            coroutineScope.launch {
+                                if (isFavorito) {
+                                    audioViewModel.eliminarFavorito(selectedAudio!!)
+                                    isFavorito = false
+                                } else {
+                                    selectedCampeon?.let {
+                                        audioViewModel.agregarFavorito(it, selectedAudio!!)
+                                    }
+                                    isFavorito = true
+                                }
+                            }
+                        },
+                        icono = if (isFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder
                     )
                 }
             }
@@ -301,7 +317,7 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
     )
 }
 @Composable
-fun BottomAudioBar(audio: ChampionAudio, onFavoriteClick: () -> Unit, onStopClick: () -> Unit) {
+fun BottomAudioBar(audio: ChampionAudio, onFavoriteClick: () -> Unit, icono: ImageVector) {
 
     Row(
         modifier = Modifier
@@ -318,10 +334,7 @@ fun BottomAudioBar(audio: ChampionAudio, onFavoriteClick: () -> Unit, onStopClic
         )
         Row {
             IconButton(onClick = onFavoriteClick) {
-                Icon(Icons.Default.Favorite, contentDescription = "Agregar a Favoritos", tint = Color.White)
-            }
-            IconButton(onClick = onStopClick) {
-                Icon(Icons.Default.Clear, contentDescription = "Parar", tint = Color.White)
+                Icon(icono, contentDescription = "Favoritos", tint = Color.White)
             }
         }
     }

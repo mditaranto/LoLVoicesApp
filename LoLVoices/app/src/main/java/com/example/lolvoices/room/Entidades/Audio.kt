@@ -6,7 +6,8 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Audio(
-    @PrimaryKey var id:Int,
-    @ColumnInfo (name = "link") var link:String?,
-    @ColumnInfo (name = "idCampeon") var idCampeon: Int
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
+    @ColumnInfo (name = "url") var url:String?,
+    @ColumnInfo (name = "idCampeon") var idCampeon: Long,
+    @ColumnInfo (name = "nombre") var nombre:String?
 )

@@ -6,17 +6,25 @@ import androidx.activity.compose.setContent
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
 import com.example.lolvoices.Vistas.CampeonesScreen
 import com.example.lolvoices.Vistas.FavoritosScreen
 import com.example.lolvoices.Vistas.JueguitoScreen
 import com.example.lolvoices.dataClasses.ChampionLoader
+import com.example.lolvoices.room.VoicesDDBB
 import com.example.lolvoices.ui.theme.LoLVoicesTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        lateinit var database: VoicesDDBB
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        database = Room.databaseBuilder(this, VoicesDDBB::class.java, "VoicesDDBB").build()
 
         val championData = runBlocking(Dispatchers.IO) {
             ChampionLoader.loadChampions()

@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Campeon(
-    @PrimaryKey var id:Int,
+    @PrimaryKey(autoGenerate = true) var id:Long = 0,
     @ColumnInfo(name = "nombre") var nombre:String?,
-    @ColumnInfo(name = "foto") var foto:String?
+    @ColumnInfo(name = "imagen") var imagen:String?
 )
