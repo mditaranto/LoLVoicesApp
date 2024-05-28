@@ -37,7 +37,7 @@ import java.io.IOException
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CampeonScreen(navController: NavHostController, campeon: String, urlsCampeon: List<String>) {
+fun CampeonScreen(navController: NavHostController, campeon: String) {
     Scaffold(
         topBar = {
             // Toolbar con 2 botones
@@ -106,22 +106,7 @@ fun CampeonScreen(navController: NavHostController, campeon: String, urlsCampeon
                                 filledRowData.forEach { item ->
                                     IconButton(
                                         onClick = {
-                                                  //play audio from a url
-                                                    val url = "https://www.soundjay.com/button/beep-07.wav"
-                                                    val mediaPlayer = MediaPlayer()
-                                                    mediaPlayer.setAudioAttributes(
-                                                        AudioAttributes.Builder()
-                                                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                                                            .build()
-                                                    )
-                                                    try {
-                                                        mediaPlayer.setDataSource(context, Uri.parse(url))
-                                                        mediaPlayer.prepare()
-                                                        mediaPlayer.start()
-                                                    } catch (e: IOException) {
-                                                        e.printStackTrace()
-                                                    }
+
 
                                         },
                                         modifier = Modifier

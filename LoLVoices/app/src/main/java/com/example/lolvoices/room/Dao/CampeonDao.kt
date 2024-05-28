@@ -15,7 +15,7 @@ interface CampeonDao {
     @Query("SELECT * FROM audio WHERE idCampeon like :idElegido")
     suspend fun getAudioByChampion(idElegido: Long): MutableList<Audio>
     @Query("SELECT * FROM campeon")
-    suspend fun getChampions(): MutableList<Campeon>
+    suspend fun getChampions(): List<Campeon>
 
     @Query("SELECT * FROM campeon WHERE nombre like :nombre")
     suspend fun getChampionByName(nombre: String): Campeon

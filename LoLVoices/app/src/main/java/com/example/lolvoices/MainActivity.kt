@@ -3,10 +3,13 @@ package com.example.lolvoices
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.room.Room
+import com.example.lolvoices.Vistas.CampeonScreen
 import com.example.lolvoices.Vistas.CampeonesScreen
 import com.example.lolvoices.Vistas.FavoritosScreen
 import com.example.lolvoices.Vistas.JueguitoScreen
@@ -42,6 +45,10 @@ class MainActivity : ComponentActivity() {
                     }
                     composable( "FavoritosScreen") {
                         FavoritosScreen(navController)
+                    }
+                    composable( "CampeonScreen/{campeon}", arguments = listOf(navArgument("campeon") {
+                        type = NavType.StringType}) ) {
+                        CampeonScreen(navController, it.arguments?.getString("campeon").toString())
                     }
 
                 }

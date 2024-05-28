@@ -22,10 +22,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -44,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -87,6 +90,8 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
     val scope = rememberCoroutineScope()
     var selectedCampeon by remember { mutableStateOf<ChampionData?>(null) }
     var isFavorito by remember { mutableStateOf(false) }
+
+    var showBottomBar by remember { mutableStateOf(true) }
 
     LaunchedEffect(selectedAudio) {
         selectedAudio?.let {
@@ -134,40 +139,46 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                         }
                     }
                     IconButton(onClick = { navController.navigate("FavoritosScreen") }) {
-                        Icon(Icons.Default.Add, contentDescription = "Agregar", tint = Color.White)
+                        Icon(Icons.Default.Star, contentDescription = "Agregar", tint = Color.White)
                     }
                     IconButton(onClick = { navController.navigate("JueguitoScreen") }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
                     }
                 },
-
-                )
+            )
         },
         content = {
-
             // Filtrar la lista de campeones según el texto de búsqueda
             val filteredCampeones = CampeonesInfo.filter {
                 it.nombre.contains(searchText, ignoreCase = true)
             }
 
-            Column (modifier = Modifier.padding(vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 Spacer(modifier = Modifier.height(60.dp))
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     // Fondo de pantalla
-
-                    Image(painter = painterResource(id = R.drawable.fondo),
+                    Image(
+                        painter = painterResource(id = R.drawable.fondo),
                         contentDescription = "Fondo de pantalla", contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
                     // LazyColumn con 3 columnas para mostrar los datos actualizados
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
+                    val lazyListState = rememberLazyListState()
 
+                    // Detecta el desplazamiento y oculta o muestra la barra inferior
+                    LaunchedEffect(lazyListState) {
+                        snapshotFlow { lazyListState.firstVisibleItemScrollOffset }
+                            .collect { scrollOffset ->
+                                showBottomBar = scrollOffset == 0
+                            }
+                    }
+
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        // LazyVerticalGrid con 3 columnas para mostrar los datos de cada tipo
                         items(filteredCampeones.chunked(3)) { rowData ->
                             Row(
                                 modifier = Modifier
@@ -180,13 +191,11 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                 filledRowData.forEach { item ->
                                     item?.let {
                                         var progress by remember { mutableStateOf(0f) }
-                                        Box(
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier
                                                 .weight(1f)
-                                                .aspectRatio(1f)
                                                 .padding(8.dp)
-                                                .clip(CircleShape)
-                                                .background(Color.Transparent)
                                                 .clickable(
                                                     enabled = !isPlaying,
                                                     onClick = {
@@ -198,8 +207,7 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                         AudioPlayer(randomAudio.url) { duration ->
                                                             scope.launch {
                                                                 val step = 50L
-                                                                val steps =
-                                                                    (duration / step).toInt()
+                                                                val steps = (duration / step).toInt()
                                                                 repeat(steps) {
                                                                     delay(step)
                                                                     progress += 1f / steps
@@ -213,32 +221,21 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .fillMaxSize()
+                                                    .aspectRatio(1f)
+                                                    .clip(CircleShape)
+                                                    .background(Color.Transparent)
                                             ) {
-                                                // Primer borde dorado grueso
                                                 Box(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .padding(4.dp) // Pequeño hueco
-                                                        .background(Color.Transparent)
-                                                        .border(
-                                                            width = 1.dp,
-                                                            brush = Brush.linearGradient(
-                                                                colors = listOf(
-                                                                    Color(0xFFC0A17B),
-                                                                    Color(0xFFD4AF37)
-                                                                )
-                                                            ),
-                                                            shape = CircleShape
-                                                        )
-                                                        .clip(CircleShape)
+                                                    modifier = Modifier.fillMaxSize()
                                                 ) {
-                                                    // Segundo borde dorado fino
+                                                    // Primer borde dorado grueso
                                                     Box(
                                                         modifier = Modifier
                                                             .fillMaxSize()
-                                                            .padding(2.dp) // Espacio para crear el hueco
-                                                            .background(
+                                                            .padding(4.dp) // Pequeño hueco
+                                                            .background(Color.Transparent)
+                                                            .border(
+                                                                width = 1.dp,
                                                                 brush = Brush.linearGradient(
                                                                     colors = listOf(
                                                                         Color(0xFFC0A17B),
@@ -247,36 +244,60 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                                 ),
                                                                 shape = CircleShape
                                                             )
+                                                            .clip(CircleShape)
                                                     ) {
-                                                        Image(
-                                                            painter = rememberAsyncImagePainter(item.imagen),
-                                                            contentDescription = "Campeón ${item.nombre}",
-                                                            contentScale = ContentScale.Crop,
+                                                        // Segundo borde dorado fino
+                                                        Box(
                                                             modifier = Modifier
                                                                 .fillMaxSize()
-                                                                .clip(CircleShape)
-                                                        )
+                                                                .padding(2.dp) // Espacio para crear el hueco
+                                                                .background(
+                                                                    brush = Brush.linearGradient(
+                                                                        colors = listOf(
+                                                                            Color(0xFFC0A17B),
+                                                                            Color(0xFFD4AF37)
+                                                                        )
+                                                                    ),
+                                                                    shape = CircleShape
+                                                                )
+                                                        ) {
+                                                            Image(
+                                                                painter = rememberAsyncImagePainter(item.imagen),
+                                                                contentDescription = "Campeón ${item.nombre}",
+                                                                contentScale = ContentScale.Crop,
+                                                                modifier = Modifier
+                                                                    .fillMaxSize()
+                                                                    .clip(CircleShape)
+                                                            )
+                                                        }
                                                     }
+                                                }
+
+                                                // Barra de progreso circular
+                                                Canvas(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .zIndex(1f)
+                                                ) {
+                                                    drawArc(
+                                                        color = Color(0xFFD4AF37),
+                                                        startAngle = -90f,
+                                                        sweepAngle = 360 * progress,
+                                                        useCenter = false,
+                                                        style = Stroke(
+                                                            width = 8.dp.toPx(),
+                                                            cap = StrokeCap.Round
+                                                        )
+                                                    )
                                                 }
                                             }
 
-                                            // Barra de progreso circular
-                                            Canvas(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .zIndex(1f)
-                                            ) {
-                                                drawArc(
-                                                    color = Color(0xFFD4AF37),
-                                                    startAngle = -90f,
-                                                    sweepAngle = 360 * progress,
-                                                    useCenter = false,
-                                                    style = Stroke(
-                                                        width = 8.dp.toPx(),
-                                                        cap = StrokeCap.Round
-                                                    )
-                                                )
-                                            }
+                                            // Nombre del campeón
+                                            Text(
+                                                text = item.nombre,
+                                                color = Color.White,
+                                                modifier = Modifier.padding(top = 5.dp)
+                                            )
                                         }
                                     } ?: Spacer(modifier = Modifier
                                         .weight(1f)
@@ -290,8 +311,7 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
             }
         },
         bottomBar = {
-            if (selectedAudio != null) {
-
+            if (selectedAudio != null && showBottomBar) {
                 Column {
                     Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
                     BottomAudioBar(
@@ -316,9 +336,9 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
         }
     )
 }
+
 @Composable
 fun BottomAudioBar(audio: ChampionAudio, onFavoriteClick: () -> Unit, icono: ImageVector) {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
