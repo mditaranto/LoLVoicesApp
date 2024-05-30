@@ -12,6 +12,7 @@ import androidx.room.Room
 import com.example.lolvoices.Vistas.CampeonScreen
 import com.example.lolvoices.Vistas.CampeonesScreen
 import com.example.lolvoices.Vistas.FavoritosScreen
+import com.example.lolvoices.Vistas.Juego.JuegoScreen
 import com.example.lolvoices.Vistas.JueguitoScreen
 import com.example.lolvoices.dataClasses.ChampionLoader
 import com.example.lolvoices.room.VoicesDDBB
@@ -49,6 +50,10 @@ class MainActivity : ComponentActivity() {
                     composable( "CampeonScreen/{campeon}", arguments = listOf(navArgument("campeon") {
                         type = NavType.StringType}) ) {
                         CampeonScreen(navController, it.arguments?.getString("campeon").toString())
+                    }
+                    composable( "JuegoScreen/{numJugadores}", arguments = listOf(navArgument("numJugadores") {
+                        type = NavType.IntType}) ) {
+                        JuegoScreen(navController, championData, it.arguments?.getInt("numJugadores") ?: 1)
                     }
 
                 }
