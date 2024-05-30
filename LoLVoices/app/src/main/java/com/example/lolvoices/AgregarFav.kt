@@ -67,4 +67,10 @@ class AgregarFav(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun getCheapionByName(nombre: String): Campeon {
+        return runBlocking {
+            campeonDao.getChampionByName(nombre)
+        }
+    }
+
 }

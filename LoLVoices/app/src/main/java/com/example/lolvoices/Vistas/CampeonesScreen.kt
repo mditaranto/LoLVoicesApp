@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -142,7 +143,7 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                         Icon(Icons.Default.Star, contentDescription = "Agregar", tint = Color.White)
                     }
                     IconButton(onClick = { navController.navigate("JueguitoScreen") }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
+                        Icon(painter = painterResource(id = R.drawable.videogame), contentDescription = "Actualizar", tint = Color.White)
                     }
                 },
             )
@@ -153,8 +154,8 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                 it.nombre.contains(searchText, ignoreCase = true)
             }
 
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                Spacer(modifier = Modifier.height(60.dp))
+            Column(modifier = Modifier.padding(vertical = 2.dp)) {
+                Spacer(modifier = Modifier.height(61.dp))
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -207,7 +208,8 @@ fun CampeonesScreen(navController: NavHostController, CampeonesInfo: List<Champi
                                                         AudioPlayer(randomAudio.url) { duration ->
                                                             scope.launch {
                                                                 val step = 50L
-                                                                val steps = (duration / step).toInt()
+                                                                val steps =
+                                                                    (duration / step).toInt()
                                                                 repeat(steps) {
                                                                     delay(step)
                                                                     progress += 1f / steps
