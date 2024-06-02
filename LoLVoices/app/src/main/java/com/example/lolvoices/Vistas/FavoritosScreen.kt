@@ -141,8 +141,8 @@ fun FavoritosScreen(navController: NavHostController) {
 
             // LazyColumn con 3 columnas para mostrar los datos actualizados
 
-            Column (modifier = Modifier.padding(vertical = 2.dp)) {
-                Spacer(modifier = Modifier.height(61.dp))
+            Column () {
+                Spacer(modifier = Modifier.height(97.dp))
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(modifier = Modifier.fillMaxSize()) {

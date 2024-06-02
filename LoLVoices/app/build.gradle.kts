@@ -54,6 +54,7 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+    implementation ("androidx.compose.ui:ui:1.6.7")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -90,4 +91,6 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.0.0-rc01")
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+
+    implementation("androidx.activity:activity:1.9.0")
 }

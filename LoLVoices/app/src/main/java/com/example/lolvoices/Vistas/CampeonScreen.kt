@@ -124,15 +124,16 @@ fun CampeonScreen(navController: NavHostController, campeon: String) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(1 / 6f * LocalConfiguration.current.screenHeightDp.dp)
+                    .height(1 / 4.5f * LocalConfiguration.current.screenHeightDp.dp)
                     .background(Color(0xFF021119))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
+                        .padding(top = 20.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         champion?.imagen?.let { imagen ->
@@ -163,7 +164,7 @@ fun CampeonScreen(navController: NavHostController, campeon: String) {
         content = {
 
             Column() {
-                Spacer(modifier = Modifier.height(1 / 6f * LocalConfiguration.current.screenHeightDp.dp))
+                Spacer(modifier = Modifier.height(1 / 4.5f * LocalConfiguration.current.screenHeightDp.dp))
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(modifier = Modifier.fillMaxSize()) {

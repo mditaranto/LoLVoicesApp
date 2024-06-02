@@ -50,6 +50,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -109,11 +110,10 @@ fun JueguitoScreen(navController: NavHostController) {
             var showDialog by remember { mutableStateOf(false) }
 
             Column(
-                modifier = Modifier.padding(vertical = 2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.height(61.dp))
+                Spacer(modifier = Modifier.height(97.dp))
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(Modifier.fillMaxSize()) {
@@ -216,8 +216,8 @@ class CustomShape : Shape {
 
 @Composable
 fun SettingsDialog(onDismiss: () -> Unit, navController: NavHostController) {
-    var selectedPlayers by remember { mutableStateOf(1) }
-    val playerRange = (1..8).toList()
+    var selectedPlayers by remember { mutableIntStateOf(1) }
+    val playerRange = (1..10).toList()
     val circularPlayerRange = List(1000) { playerRange[it % playerRange.size] } // Circular list
     val lazyListState = rememberLazyListState(initialFirstVisibleItemIndex = circularPlayerRange.size / 2)
 
