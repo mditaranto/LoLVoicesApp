@@ -1,5 +1,6 @@
 package com.example.lolvoices.Vistas
 
+import CustomButton
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -71,9 +72,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.createBitmap
 import coil.decode.ImageSource
 import com.example.lolvoices.InfiniteCircularList
+import com.example.lolvoices.Modals.SettingsDialog
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,14 +109,15 @@ fun JueguitoScreen(navController: NavHostController) {
                 },
             )
         },
-        content = {
+        content = { innerpadding ->
             var showDialog by remember { mutableStateOf(false) }
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+                    .padding(innerpadding)
             ) {
-                Spacer(modifier = Modifier.height(97.dp))
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(Modifier.fillMaxSize()) {
@@ -150,6 +154,7 @@ fun JueguitoScreen(navController: NavHostController) {
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.fillMaxWidth()
                         ) {
+
                             Box(
                                 modifier = Modifier.offset(x = 20.dp) // Adjust this value as needed to balance the layout
                             ) {
@@ -213,101 +218,3 @@ class CustomShape : Shape {
         close()
     })
 }
-
-@Composable
-fun SettingsDialog(onDismiss: () -> Unit, navController: NavHostController) {
-    var selectedPlayers by remember { mutableIntStateOf(1) }
-    val playerRange = (1..10).toList()
-    val circularPlayerRange = List(1000) { playerRange[it % playerRange.size] } // Circular list
-    val lazyListState = rememberLazyListState(initialFirstVisibleItemIndex = circularPlayerRange.size / 2)
-
-// Update the selectedPlayers based on the scroll position
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.firstVisibleItemIndex }
-            .collect { firstVisibleIndex ->
-                val centerIndex = lazyListState.layoutInfo.visibleItemsInfo.size / 2
-                selectedPlayers = circularPlayerRange[firstVisibleIndex + centerIndex]
-            }
-    }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Box(
-            modifier = Modifier
-                .background(Color(0xFF021119), shape = RoundedCornerShape(16.dp))
-                .padding(8.dp)
-                .width(300.dp)
-                .height(400.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.settingwall),
-                contentDescription = "Fondo de pantalla",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(0.3f)
-            )
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-
-                Text(
-                    text = "AJUSTES",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
-                )
-
-                Text(
-                    text = "Número de Jugadores",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                Box(
-                    modifier = Modifier
-                        .height(200.dp)
-                        .padding(horizontal = 36.dp)
-                        .fillMaxWidth()
-                ) {
-                    InfiniteCircularList(
-                        width = 300.dp,
-                        itemHeight = 55.dp,
-                        items = playerRange,
-                        initialItem = 1,
-                        textStyle = TextStyle(fontSize = 15.sp),
-                        textColor = Color.White,
-                        selectedTextColor = Color(0xFF0EAAD2),
-                        onItemSelected = { index, item ->
-                            selectedPlayers = item
-                        }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    Button(onClick = onDismiss) {
-                        Text(text = "Cancelar")
-                    }
-
-                    Button(onClick = {
-                        navController.navigate("JuegoScreen/$selectedPlayers")
-                    }) {
-                        Text(text = "Jugar")
-                    }
-                }
-            }
-        }
-    }
-    }

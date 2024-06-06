@@ -1,5 +1,6 @@
 package com.example.lolvoices.Vistas.Juego
 
+import CustomButton
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,7 +24,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Button
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Divider
@@ -37,7 +37,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,10 +56,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.example.lolvoices.AudioPlayer
+import com.example.lolvoices.Components.AudioPlayer
+import com.example.lolvoices.Modals.EndGameAloneDialog
+import com.example.lolvoices.Modals.EndGameDialog
 import com.example.lolvoices.R
 import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.dataClasses.ChampionData
+import com.example.lolvoices.ui.theme.ColorDorado
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -71,6 +73,11 @@ fun JuegoScreen(
     CampeonesInfo: List<ChampionData>,
     numJugadores: Int
 ) {
+
+    var showDialog by remember {
+        mutableStateOf(false)
+    }
+
     // Variables estandar
     var audioPantalla by remember {
         mutableStateOf(ChampionAudio("", ""))
@@ -139,9 +146,14 @@ fun JuegoScreen(
     LaunchedEffect(jugadorActual) {
         if (erroresJugadores[jugadorActual] >= 3) {
             jugadorActual++
-            //Comprobar si se ha acabado el juego
+            if (erroresJugadores.count { it >= 3 } == numJugadores ) {
+                //Modal de fin de juego
+                showDialog = true
+            }
         }
+
     }
+
 
     // Pantalla de juego
     // Filtrar la lista de campeones según el texto de búsqueda
@@ -202,12 +214,31 @@ fun JuegoScreen(
                         )
                     }
                 }
+
+                if (showDialog) {
+                    if (numJugadores == 1) {
+                        EndGameAloneDialog(
+                            onDismiss = { showDialog = false },
+                            navController = NavController,
+                            puntuacion = puntuacionesJugadores[0]
+                        )
+                    } else {
+                        EndGameDialog(
+                            onDismiss = { showDialog = false },
+                            navController = NavController,
+                            jugGanador = puntuacionesJugadores.indexOf(puntuacionesJugadores.maxOrNull()),
+                            numJugadores = numJugadores,
+                            puntuacion = puntuacionesJugadores.maxOrNull() ?: 0
+                        )
+                    }
+                }
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .clickable(
                             enabled = !isPlaying,
                             onClick = {
+                                /*
                                 isPlaying = true
                                 progress = 0f
                                 audioPantalla.url.let { it1 ->
@@ -225,6 +256,8 @@ fun JuegoScreen(
                                         }
                                     }
                                 }
+                                */
+                                 
                             }
                         )
                         .fillMaxWidth()
@@ -233,10 +266,10 @@ fun JuegoScreen(
                         modifier = Modifier
                             .size(230.dp)
                             .clip(CircleShape)
-                            .background(if (!played) Color.Transparent else Color(0xFFD4AF37))
+                            .background(if (!played) Color.Transparent else ColorDorado)
                             .border(
                                 width = 2.dp,
-                                color = Color(0xFFD4AF37),
+                                color = ColorDorado,
                                 shape = CircleShape
                             )
                     ) {
@@ -262,7 +295,7 @@ fun JuegoScreen(
                                 .zIndex(1f)
                         ) {
                             drawArc(
-                                color = (if (!played) Color(0xFFD4AF37) else Color(0xFF021119)),
+                                color = (if (!played) ColorDorado else Color(0xFF021119)),
                                 startAngle = -90f,
                                 sweepAngle = 360 * progress,
                                 useCenter = false,
@@ -285,15 +318,14 @@ fun JuegoScreen(
                     ) {
                         if (searchText.uppercase() == campeon.nombre.uppercase()) {
                             Text(text = "¡Respuesta correcta!", color = Color.Green, fontSize = 25.sp)
-                            Text(text = "${campeon.nombre}", color = Color.White, fontSize = 20.sp)
+                            Text(text = campeon.nombre, color = Color.White, fontSize = 20.sp)
                         } else {
                             Text(text = "¡Respuesta incorrecta!", color = Color.Red, fontSize = 25.sp)
-                            Text(text = "${campeon.nombre}", color = Color.White, fontSize = 20.sp)
+                            Text(text = campeon.nombre, color = Color.White, fontSize = 20.sp)
                         }
                     }
                 }
             }
-
 
             Column(
                 Modifier
@@ -339,11 +371,10 @@ fun JuegoScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .imePadding()
+                    .weight(if (!WindowInsets.isImeVisible) 1f else 0.5f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-
-
                 TextField(
                     value = searchText,
                     onValueChange = { searchText = it},
@@ -365,16 +396,17 @@ fun JuegoScreen(
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.Transparent,
                         cursorColor = Color.White,
-                        focusedIndicatorColor = Color(0xFFD4AF37),
-                        unfocusedIndicatorColor = Color(0xFFD4AF37)
+                        focusedIndicatorColor = ColorDorado,
+                        unfocusedIndicatorColor = ColorDorado
                     ),
                     enabled = !sigTurno
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
                 if (!WindowInsets.isImeVisible) {
-                    Button(
+                    CustomButton(
+                        text = ">",
+                        ancho = 200,
+                        alto = 50,
                         onClick = {
                             if (!sigTurno) {
                                 if (searchText.equals(
@@ -385,13 +417,14 @@ fun JuegoScreen(
                                     puntuacionesJugadores[jugadorActual] += 100
                                 } else {
                                     puntuacionesJugadores[jugadorActual] -= 50
-                                    erroresJugadores[jugadorActual]+=1;
+                                    erroresJugadores[jugadorActual]+=1
                                 }
                                 sigTurno = true
                             } else {
                                 sigTurno = false
                                 if (jugadorActual == numJugadores - 1) {
                                     jugadorActual = 0
+                                    showDialog = comprobarFin(erroresJugadores, numJugadores)
                                 } else {
                                     jugadorActual++
                                 }
@@ -402,16 +435,18 @@ fun JuegoScreen(
                                 played = false
                             }
                         },
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(8.dp)
-                    ) {
-                        Text("Responder")
-                    }
+                    )
+                    Spacer(modifier = Modifier.height(15.dp))
                 }
-
-                Spacer(modifier = Modifier.height(18.dp))
             }
         }
     }
+}
+
+fun comprobarFin(erroresJugadores: MutableList<Int>, numJugadores: Int) : Boolean{
+    var showDialog = false
+    if (erroresJugadores.count { it >= 3 } == numJugadores ) {
+        showDialog = true
+    }
+    return showDialog
 }

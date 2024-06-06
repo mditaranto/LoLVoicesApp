@@ -49,11 +49,11 @@ fun LoLVoicesTheme(
     val systemUiController = rememberSystemUiController()
     if(darkTheme){
         systemUiController.setSystemBarsColor(
-            color = Color.Transparent
+            color = Color(0xFF021119)
         )
     }else{
         systemUiController.setSystemBarsColor(
-            color = Color.White
+            color = Color(0xFF021119)
         )
     }
     val colorScheme = when {
@@ -69,7 +69,8 @@ fun LoLVoicesTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = Color.Transparent.toArgb()
+            window.navigationBarColor = Color.Transparent.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }

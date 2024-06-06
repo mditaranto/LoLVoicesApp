@@ -27,8 +27,9 @@ class AgregarFav(application: Application) : AndroidViewModel(application) {
     }
 
     fun comprobarFavorito(audio: ChampionAudio): Boolean {
+
         var favorito = false
-        viewModelScope.launch {
+        runBlocking {
             val nuevo = campeonDao.getAudioByName(audio.nombre)
             if (nuevo != null) {
                 favorito = true

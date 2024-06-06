@@ -58,8 +58,7 @@ class MainActivity : ComponentActivity() {
                         type = NavType.IntType}) ) {
                         JuegoScreen(navController, championData, it.arguments?.getInt("numJugadores") ?: 1)
                     }
-
-                }
+                  }
             }
         }
     }

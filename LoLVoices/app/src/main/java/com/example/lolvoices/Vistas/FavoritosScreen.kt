@@ -51,8 +51,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.lolvoices.AgregarFav
+import com.example.lolvoices.Components.SearchBar
 import com.example.lolvoices.R
 import com.example.lolvoices.dataClasses.ChampionAudio
+import com.example.lolvoices.ui.theme.ColorDorado
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -94,23 +96,10 @@ fun FavoritosScreen(navController: NavHostController) {
                 modifier = Modifier.background(Color(0xFF021119)),
                 title = {
                     if (isSearchVisible) {
-                        TextField(
-                            value = searchText,
-                            onValueChange = { searchText = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            textStyle = TextStyle(color = Color.White),
-                            placeholder = { Text("Buscar...", color = Color.White) },
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.small,
-                            leadingIcon = {
-                                IconButton(onClick = { isSearchVisible = false; searchText = "" }) {
-                                    Icon(Icons.Default.Clear, contentDescription = "Limpiar", tint = Color.White)
-                                }
-                            },
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                            )
+                        SearchBar(
+                            searchText = searchText,
+                            onSearchTextChange = { searchText = it },
+                            onSearchVisibilityChange = { isSearchVisible = it}
                         )
                     } else {
                         Text("LoLVoices", color = Color.White)  // Cambia esto al título que desees mostrar
@@ -132,17 +121,17 @@ fun FavoritosScreen(navController: NavHostController) {
 
                 )
         },
-        content = {
+        content = { innerpadding ->
 
             // Filtrar la lista de campeones según el texto de búsqueda
-            val filteredCampeones = campeones.filter {
+            val filteredCampeones = campeones.sortedBy { it.nombre }.filter {
                 it.nombre?.contains(searchText, ignoreCase = true) ?: true
             }
 
             // LazyColumn con 3 columnas para mostrar los datos actualizados
 
-            Column () {
-                Spacer(modifier = Modifier.height(97.dp))
+            Column ( Modifier.padding(innerpadding)
+                .fillMaxSize()) {
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -167,7 +156,6 @@ fun FavoritosScreen(navController: NavHostController) {
 
                                 filledRowData.forEach { item ->
                                     item?.let {
-                                        var progress by remember { mutableStateOf(0f) }
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier
@@ -193,7 +181,7 @@ fun FavoritosScreen(navController: NavHostController) {
                                                             .padding(4.dp) // Pequeño hueco
                                                             .background(Color.Transparent)
                                                             .border(
-                                                                width = 1.dp,
+                                                                width = 2.dp,
                                                                 brush = Brush.linearGradient(
                                                                     colors = listOf(
                                                                         Color(0xFFC0A17B),
@@ -208,7 +196,7 @@ fun FavoritosScreen(navController: NavHostController) {
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxSize()
-                                                                .padding(2.dp) // Espacio para crear el hueco
+                                                                .padding(4.dp) // Espacio para crear el hueco
                                                                 .background(
                                                                     brush = Brush.linearGradient(
                                                                         colors = listOf(
@@ -218,6 +206,10 @@ fun FavoritosScreen(navController: NavHostController) {
                                                                     ),
                                                                     shape = CircleShape
                                                                 )
+                                                                .border(
+                                                                    width = 1.dp,
+                                                                    color = ColorDorado,
+                                                                    shape = CircleShape)
                                                         ) {
                                                             Image(
                                                                 painter = rememberAsyncImagePainter(
