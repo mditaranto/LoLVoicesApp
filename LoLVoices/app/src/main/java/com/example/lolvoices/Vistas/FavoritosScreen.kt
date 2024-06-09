@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Divider
@@ -28,8 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -45,14 +41,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.example.lolvoices.AgregarFav
-import com.example.lolvoices.Components.SearchBar
+import com.example.lolvoices.Components.Listas.ListaChampsFav
+import com.example.lolvoices.Components.Recurrentes.SearchBar
 import com.example.lolvoices.R
+import com.example.lolvoices.RoomGestor
 import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.ui.theme.ColorDorado
 
@@ -61,9 +57,9 @@ import com.example.lolvoices.ui.theme.ColorDorado
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritosScreen(navController: NavHostController) {
-
-    val audioViewModel: AgregarFav = viewModel()
+    val audioViewModel: RoomGestor = viewModel()
     val campeones = audioViewModel.getChampion()
+
     //LaunchedEffect para borrar los campeones sin audios
     LaunchedEffect(Unit) {
         for (campeon in campeones) {
@@ -79,6 +75,7 @@ fun FavoritosScreen(navController: NavHostController) {
     var selectedAudio by remember { mutableStateOf<ChampionAudio?>(null) }
     var isFavorito by remember { mutableStateOf(false) }
 
+    // Comprobar si el audio seleccionado es favorito
     LaunchedEffect(selectedAudio) {
         selectedAudio?.let {
             isFavorito = audioViewModel.comprobarFavorito(selectedAudio!!)
@@ -111,10 +108,10 @@ fun FavoritosScreen(navController: NavHostController) {
                             Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
                         }
                     }
-                    IconButton(onClick = { navController.navigate("CampeonesScreen") }) {
+                    IconButton(onClick = { navController.popBackStack()}) {
                         Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
                     }
-                    IconButton(onClick = { navController.navigate("JueguitoScreen") }) {
+                    IconButton(onClick = {  navController.popBackStack(); navController.navigate("JueguitoScreen")}) {
                         Icon(painter = painterResource(id = R.drawable.videogame), contentDescription = "Juego", tint = Color.White)
                     }
                 },
@@ -130,8 +127,10 @@ fun FavoritosScreen(navController: NavHostController) {
 
             // LazyColumn con 3 columnas para mostrar los datos actualizados
 
-            Column ( Modifier.padding(innerpadding)
-                .fillMaxSize()) {
+            Column (
+                Modifier
+                    .padding(innerpadding)
+                    .fillMaxSize()) {
                 Divider(color = Color(0xFFC0A17B), thickness = 1.dp)
 
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -141,107 +140,9 @@ fun FavoritosScreen(navController: NavHostController) {
                         contentDescription = "Fondo de pantalla", contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-                    // LazyColumn con 3 columnas para mostrar los datos actualizados
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(filteredCampeones.chunked(3)) { rowData ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                            ) {
-                                // Rellenar la fila con celdas vacías si no hay suficientes datos
-                                val filledRowData = rowData + List(3 - rowData.size) { null }
 
-                                filledRowData.forEach { item ->
-                                    item?.let {
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .padding(8.dp)
-                                                .clickable(
-                                                    onClick = { navController.navigate("CampeonScreen/${item.nombre}") }
-                                                )
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .aspectRatio(1f)
-                                                    .clip(CircleShape)
-                                                    .background(Color.Transparent)
-                                            ) {
-                                                Box(
-                                                    modifier = Modifier.fillMaxSize()
-                                                ) {
-                                                    // Primer borde dorado grueso
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .padding(4.dp) // Pequeño hueco
-                                                            .background(Color.Transparent)
-                                                            .border(
-                                                                width = 2.dp,
-                                                                brush = Brush.linearGradient(
-                                                                    colors = listOf(
-                                                                        Color(0xFFC0A17B),
-                                                                        Color(0xFFD4AF37)
-                                                                    )
-                                                                ),
-                                                                shape = CircleShape
-                                                            )
-                                                            .clip(CircleShape)
-                                                    ) {
-                                                        // Segundo borde dorado fino
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .fillMaxSize()
-                                                                .padding(4.dp) // Espacio para crear el hueco
-                                                                .background(
-                                                                    brush = Brush.linearGradient(
-                                                                        colors = listOf(
-                                                                            Color(0xFFC0A17B),
-                                                                            Color(0xFFD4AF37)
-                                                                        )
-                                                                    ),
-                                                                    shape = CircleShape
-                                                                )
-                                                                .border(
-                                                                    width = 1.dp,
-                                                                    color = ColorDorado,
-                                                                    shape = CircleShape)
-                                                        ) {
-                                                            Image(
-                                                                painter = rememberAsyncImagePainter(
-                                                                    item.imagen
-                                                                ),
-                                                                contentDescription = "Campeón ${item.nombre}",
-                                                                contentScale = ContentScale.Crop,
-                                                                modifier = Modifier
-                                                                    .fillMaxSize()
-                                                                    .clip(CircleShape)
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            // Nombre del campeón
-                                            item.nombre?.let { it1 ->
-                                                Text(
-                                                    text = it1,
-                                                    color = Color.White,
-                                                    modifier = Modifier.padding(top = 5.dp)
-                                                )
-                                            }
-                                        }
-                                    } ?: Spacer(modifier = Modifier
-                                        .weight(1f)
-                                        .aspectRatio(1f)
-                                        .padding(8.dp))
-                                }
-                            }
-                        }
-                    }
+                    ListaChampsFav(filteredCampeones = filteredCampeones,
+                        navController = navController)
                 }
             }
         }

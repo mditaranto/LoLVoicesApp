@@ -4,17 +4,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.room.Room
+import com.example.lolvoices.Components.AudioPlayerViewModel
+import com.example.lolvoices.FireBase.FireStoreBBDD
 import com.example.lolvoices.Vistas.CampeonScreen
 import com.example.lolvoices.Vistas.CampeonesScreen
 import com.example.lolvoices.Vistas.FavoritosScreen
 import com.example.lolvoices.Vistas.Juego.JuegoScreen
-import com.example.lolvoices.Vistas.JueguitoScreen
+import com.example.lolvoices.Vistas.Juego.JueguitoScreen
+import com.example.lolvoices.Vistas.LoadingScreen
+import com.example.lolvoices.Vistas.PuntuacionesScreen
 import com.example.lolvoices.dataClasses.ChampionLoader
 import com.example.lolvoices.room.VoicesDDBB
 import com.example.lolvoices.ui.theme.LoLVoicesTheme
@@ -37,12 +42,16 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+            val viewModel : AudioPlayerViewModel = viewModel()
             val navController = rememberNavController()
             LoLVoicesTheme {
                 // A surface container using the 'background' color from the theme
-                NavHost (navController = navController, startDestination = "CampeonesScreen") {
+                NavHost (navController = navController, startDestination = "LoadingScreen") {
+                    composable("LoadingScreen") {
+                        LoadingScreen(navController, championData, viewModel)
+                    }
                     composable("CampeonesScreen") {
-                        CampeonesScreen(navController, championData)
+                        CampeonesScreen(navController, championData, viewModel)
                     }
                     composable( "JueguitoScreen") {
                         JueguitoScreen(navController)
@@ -52,13 +61,16 @@ class MainActivity : ComponentActivity() {
                     }
                     composable( "CampeonScreen/{campeon}", arguments = listOf(navArgument("campeon") {
                         type = NavType.StringType}) ) {
-                        CampeonScreen(navController, it.arguments?.getString("campeon").toString())
+                        CampeonScreen(navController, it.arguments?.getString("campeon").toString(), viewModel)
                     }
                     composable( "JuegoScreen/{numJugadores}", arguments = listOf(navArgument("numJugadores") {
                         type = NavType.IntType}) ) {
-                        JuegoScreen(navController, championData, it.arguments?.getInt("numJugadores") ?: 1)
+                        JuegoScreen(navController, championData, it.arguments?.getInt("numJugadores") ?: 1, viewModel)
                     }
-                  }
+                    composable("PuntuacionesScreen") {
+                    PuntuacionesScreen(navController)
+                    }
+                }
             }
         }
     }

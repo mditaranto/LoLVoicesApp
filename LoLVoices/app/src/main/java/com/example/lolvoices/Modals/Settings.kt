@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,12 +36,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
-import com.example.lolvoices.Components.BordesDoraditos
+import com.example.lolvoices.Components.Recurrentes.BordesDoraditos
 import com.example.lolvoices.InfiniteCircularList
 import com.example.lolvoices.R
 import com.example.lolvoices.ui.theme.ColorDorado
 
-
+// Modal para ajustar el número de jugadores
 @Composable
 fun SettingsDialog(onDismiss: () -> Unit, navController: NavHostController) {
     var selectedPlayers by remember { mutableIntStateOf(1) }

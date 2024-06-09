@@ -28,10 +28,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
-import com.example.lolvoices.Components.BordesDoraditos
+import com.example.lolvoices.Components.Recurrentes.BordesDoraditos
 import com.example.lolvoices.R
 
-
+// Modal para mostrar el ganador de la partida y dar la opción de salir o jugar de nuevo
+// Si hay mas de un jugador
 @Composable
 fun EndGameDialog(
     onDismiss: () -> Unit,
@@ -111,7 +112,7 @@ fun EndGameDialog(
                     ) {
                         CustomButton(
                             text = "Salir",
-                            onClick = { onDismiss(); navController.navigate("CampeonesScreen") },
+                            onClick = { onDismiss(); navController.popBackStack() },
                             ancho = 100, alto = 50
                         )
 

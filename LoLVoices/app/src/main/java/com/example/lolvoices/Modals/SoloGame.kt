@@ -32,16 +32,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
-import com.example.lolvoices.Components.BordesDoraditos
+import com.example.lolvoices.Components.Recurrentes.BordesDoraditos
 import com.example.lolvoices.R
 import com.example.lolvoices.ui.theme.ColorDorado
 
-
+// Modal para mostrar el fin del juego en solitario
+// Da la opción de salir, reintentar o guardar la puntuación
 @Composable
 fun EndGameAloneDialog(onDismiss: () -> Unit, navController: NavHostController, puntuacion: Int) {
 
     var botomenabled by remember { mutableStateOf(true) }
-
+    var showDialog by remember { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = { onDismiss(); navController.navigate("JueguitoScreen") },
@@ -99,9 +100,11 @@ fun EndGameAloneDialog(onDismiss: () -> Unit, navController: NavHostController, 
 
                     }
 
-                    Column (modifier = Modifier.fillMaxSize(),
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceAround) {
+                        verticalArrangement = Arrangement.SpaceAround
+                    ) {
                         Row(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier.fillMaxWidth(),
@@ -109,24 +112,34 @@ fun EndGameAloneDialog(onDismiss: () -> Unit, navController: NavHostController, 
                         ) {
                             CustomButton(
                                 text = "Salir",
-                                onClick = { onDismiss(); navController.navigate("CampeonesScreen") },
+                                onClick = { onDismiss(); navController.popBackStack() },
                                 ancho = 100, alto = 50
                             )
 
-                            CustomButton(text = "Reintentar",
+                            CustomButton(
+                                text = "Reintentar",
                                 onClick = { onDismiss(); navController.navigate("JuegoScreen/2") },
-                                ancho = 100, alto = 50)
+                                ancho = 100, alto = 50
+                            )
                         }
                         Row(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.Bottom
                         ) {
-
-                            CustomButton(text = "Guardar puntuación",
-                                onClick = { botomenabled = false; },
+                            if (showDialog) {
+                                ChangeName(
+                                    onDismiss = { showDialog = false },
+                                    onAccept = { botomenabled = false },
+                                    puntuacion = puntuacion
+                                )
+                            }
+                            CustomButton(
+                                text = "Guardar puntuación",
+                                onClick = { showDialog = true },
                                 ancho = 180, alto = 50,
-                                enabled = botomenabled)
+                                enabled = botomenabled
+                            )
 
                         }
                     }

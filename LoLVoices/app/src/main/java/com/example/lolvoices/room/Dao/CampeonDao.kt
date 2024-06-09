@@ -20,8 +20,8 @@ interface CampeonDao {
     @Query("SELECT * FROM campeon WHERE nombre like :nombre")
     suspend fun getChampionByName(nombre: String): Campeon
 
-    @Query("SELECT * FROM audio WHERE nombre like :nombre")
-    suspend fun getAudioByName(nombre: String): Audio
+    @Query("SELECT * FROM audio WHERE url like :url")
+    suspend fun getAudioByUrl(url: String): Audio
 
     //CREATE
     @Insert

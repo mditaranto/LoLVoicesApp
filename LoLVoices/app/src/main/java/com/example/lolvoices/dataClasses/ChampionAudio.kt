@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChampionAudio(
-    val nombre: String,
+    var nombre: String,
     val url: String
 )

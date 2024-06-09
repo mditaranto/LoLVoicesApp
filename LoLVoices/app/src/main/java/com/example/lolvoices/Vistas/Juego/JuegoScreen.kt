@@ -1,7 +1,6 @@
 package com.example.lolvoices.Vistas.Juego
 
 import CustomButton
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +36,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,26 +44,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.example.lolvoices.Components.AudioPlayer
+import com.example.lolvoices.Components.AudioPlayerViewModel
+import com.example.lolvoices.Components.Recurrentes.LoadingIndicator
+import com.example.lolvoices.Components.Recurrentes.ProgressIndicator
+import com.example.lolvoices.Funciones.manejarTurno
 import com.example.lolvoices.Modals.EndGameAloneDialog
 import com.example.lolvoices.Modals.EndGameDialog
 import com.example.lolvoices.R
 import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.dataClasses.ChampionData
 import com.example.lolvoices.ui.theme.ColorDorado
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -71,7 +72,8 @@ import kotlinx.coroutines.launch
 fun JuegoScreen(
     NavController: NavHostController,
     CampeonesInfo: List<ChampionData>,
-    numJugadores: Int
+    numJugadores: Int,
+    viewModel: AudioPlayerViewModel = viewModel()
 ) {
 
     var showDialog by remember {
@@ -92,13 +94,13 @@ fun JuegoScreen(
     }
 
     //Variables de reproduccion
-    var isPlaying by remember {
-        mutableStateOf(false)
-    }
     var played by remember {
         mutableStateOf(false)
     }
-    var progress by remember { mutableStateOf(0f) }
+    val progress by viewModel.progress(audioPantalla.url).observeAsState(0f)
+    val isLoading by viewModel.isLoading(audioPantalla.url).observeAsState(false)
+    val isPlaying by viewModel.isPlaying(audioPantalla.url).observeAsState(false)
+
     val scope = rememberCoroutineScope()
 
     // Variables de UI
@@ -142,25 +144,22 @@ fun JuegoScreen(
             numJugadores = 10
         }
     }
-
     LaunchedEffect(jugadorActual) {
         if (erroresJugadores[jugadorActual] >= 3) {
             jugadorActual++
-            if (erroresJugadores.count { it >= 3 } == numJugadores ) {
+            if (erroresJugadores.count { it >= 3 } == numJugadores) {
                 //Modal de fin de juego
                 showDialog = true
             }
         }
-
     }
 
-
-    // Pantalla de juego
     // Filtrar la lista de campeones según el texto de búsqueda
     val filteredCampeones = CampeonesInfo.filter {
         it.nombre.contains(searchText, ignoreCase = true)
     }
 
+    // Pantalla de juego
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -203,7 +202,7 @@ fun JuegoScreen(
 
             // Botón de reproducción
             Column(Modifier.weight(3f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Row (Modifier.height(50.dp)){
+                Row(Modifier.height(50.dp)) {
                     for (i in 0 until erroresJugadores[jugadorActual]) {
                         Icon(
                             Icons.Default.Close,
@@ -211,7 +210,7 @@ fun JuegoScreen(
                             tint = Color.Red,
                             modifier = Modifier.size(30.dp),
 
-                        )
+                            )
                     }
                 }
 
@@ -238,26 +237,14 @@ fun JuegoScreen(
                         .clickable(
                             enabled = !isPlaying,
                             onClick = {
-                                /*
-                                isPlaying = true
-                                progress = 0f
                                 audioPantalla.url.let { it1 ->
-                                    AudioPlayer(it1) { duration ->
-                                        scope.launch {
-                                            val step = 20L
-                                            val steps = (duration / step).toInt()
-                                            repeat(steps) {
-                                                delay(step)
-                                                progress += 1f / steps
-                                            }
-                                            progress = 0f
-                                            isPlaying = false
-                                            played = true
-                                        }
+                                    scope.launch {
+                                        viewModel.play(
+                                            url = it1,
+                                            Played = {if (!sigTurno) played = it}
+                                            )
                                     }
                                 }
-                                */
-                                 
                             }
                         )
                         .fillMaxWidth()
@@ -266,44 +253,78 @@ fun JuegoScreen(
                         modifier = Modifier
                             .size(230.dp)
                             .clip(CircleShape)
-                            .background(if (!played) Color.Transparent else ColorDorado)
+                            .background(brush =
+                                if (played) {
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            Color(0xFFC0A17B),
+                                            Color(0xFFD4AF37)
+                                        )
+                                    )
+                                } else {
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Transparent
+                                        )
+                                    )
+                                }
+                            )
                             .border(
-                                width = 2.dp,
-                                color = ColorDorado,
+                                width = 4.dp,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        if (!isPlaying && !isLoading && progress == 0f) Color(
+                                            0xFFC0A17B
+                                        ) else Color.Transparent,
+                                        if (!isPlaying && !isLoading && progress == 0f) Color(
+                                            0xFFD4AF37
+                                        ) else Color.Transparent
+                                    )
+                                ),
                                 shape = CircleShape
                             )
                     ) {
-                        if (sigTurno) {
-                            Image(painter = rememberAsyncImagePainter(campeon.imagen),
-                                contentDescription = "Campeón ${campeon.nombre}",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape))
+                        if (isLoading) {
+                            LoadingIndicator(width = 8)
                         } else {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_play),
-                                contentDescription = "Reproducir",
-                                tint = Color.White,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
+                            ProgressIndicator(progress = progress, width = 8, played = played)
                         }
 
-                        Canvas(
+                        Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .zIndex(1f)
-                        ) {
-                            drawArc(
-                                color = (if (!played) ColorDorado else Color(0xFF021119)),
-                                startAngle = -90f,
-                                sweepAngle = 360 * progress,
-                                useCenter = false,
-                                style = Stroke(
-                                    width = 8.dp.toPx(),
-                                    cap = StrokeCap.Round
+                                .padding(8.dp)
+                                .clip(CircleShape)
+                                .background(Color.Transparent)
+                                .border(
+                                    width = 2.dp,
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(
+                                            Color(0xFFC0A17B),
+                                            Color(0xFFD4AF37)
+                                        )
+                                    ),
+                                    shape = CircleShape
                                 )
-                            )
+                        ) {
+                            if (sigTurno) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(campeon.imagen),
+                                    contentDescription = "Campeón ${campeon.nombre}",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape)
+                                )
+                            } else {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_play),
+                                    contentDescription = "Reproducir",
+                                    tint = Color.White,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
                         }
                     }
                 }
@@ -317,10 +338,18 @@ fun JuegoScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (searchText.uppercase() == campeon.nombre.uppercase()) {
-                            Text(text = "¡Respuesta correcta!", color = Color.Green, fontSize = 25.sp)
+                            Text(
+                                text = "¡Respuesta correcta!",
+                                color = Color.Green,
+                                fontSize = 25.sp
+                            )
                             Text(text = campeon.nombre, color = Color.White, fontSize = 20.sp)
                         } else {
-                            Text(text = "¡Respuesta incorrecta!", color = Color.Red, fontSize = 25.sp)
+                            Text(
+                                text = "¡Respuesta incorrecta!",
+                                color = Color.Red,
+                                fontSize = 25.sp
+                            )
                             Text(text = campeon.nombre, color = Color.White, fontSize = 20.sp)
                         }
                     }
@@ -332,7 +361,7 @@ fun JuegoScreen(
                     .fillMaxWidth()
                     .weight(1f),
                 verticalArrangement = Arrangement.Bottom
-                    ) {
+            ) {
                 if (searchText.isNotEmpty() && showLazyColumn) {
                     val itemHeight = 50.dp
                     val maxVisibleItems = 2
@@ -377,7 +406,7 @@ fun JuegoScreen(
             ) {
                 TextField(
                     value = searchText,
-                    onValueChange = { searchText = it},
+                    onValueChange = { searchText = it },
                     modifier = Modifier
                         .fillMaxWidth(),
                     textStyle = TextStyle(color = Color.White),
@@ -395,7 +424,7 @@ fun JuegoScreen(
                     },
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.Transparent,
-                        cursorColor = Color.White,
+                        cursorColor = ColorDorado,
                         focusedIndicatorColor = ColorDorado,
                         unfocusedIndicatorColor = ColorDorado
                     ),
@@ -404,35 +433,31 @@ fun JuegoScreen(
 
                 if (!WindowInsets.isImeVisible) {
                     CustomButton(
+                        enabled = (searchText.isNotEmpty()),
                         text = ">",
                         ancho = 200,
                         alto = 50,
                         onClick = {
+                            played = false
+                            val (sigTurnoLocal, jugadorActualLocal, showDialogLocal) = manejarTurno(
+                                searchText,
+                                campeon.nombre,
+                                puntuacionesJugadores,
+                                erroresJugadores,
+                                jugadorActual,
+                                numJugadores,
+                                sigTurno
+                            )
+                            sigTurno = sigTurnoLocal
+                            jugadorActual = jugadorActualLocal
+                            showDialog = showDialogLocal
                             if (!sigTurno) {
-                                if (searchText.equals(
-                                        campeon.nombre,
-                                        ignoreCase = true
-                                    )
-                                ) {
-                                    puntuacionesJugadores[jugadorActual] += 100
-                                } else {
-                                    puntuacionesJugadores[jugadorActual] -= 50
-                                    erroresJugadores[jugadorActual]+=1
-                                }
-                                sigTurno = true
-                            } else {
-                                sigTurno = false
-                                if (jugadorActual == numJugadores - 1) {
-                                    jugadorActual = 0
-                                    showDialog = comprobarFin(erroresJugadores, numJugadores)
-                                } else {
-                                    jugadorActual++
-                                }
                                 campeon = CampeonesInfo.random()
                                 val audioAleat = campeon.audios.random()
                                 audioPantalla = audioAleat
                                 searchText = ""
                                 played = false
+                                viewModel.stopAll()
                             }
                         },
                     )
@@ -443,10 +468,3 @@ fun JuegoScreen(
     }
 }
 
-fun comprobarFin(erroresJugadores: MutableList<Int>, numJugadores: Int) : Boolean{
-    var showDialog = false
-    if (erroresJugadores.count { it >= 3 } == numJugadores ) {
-        showDialog = true
-    }
-    return showDialog
-}
