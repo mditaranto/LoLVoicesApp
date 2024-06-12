@@ -1,4 +1,4 @@
-package com.example.lolvoices.Components
+package com.example.lolvoices.ViewModels
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer

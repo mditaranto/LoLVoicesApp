@@ -31,7 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.lolvoices.Components.AudioPlayerViewModel
+import com.example.lolvoices.ViewModels.AudioPlayerViewModel
 import com.example.lolvoices.Components.Recurrentes.LoadingIndicator
 import com.example.lolvoices.Components.Recurrentes.ProgressIndicator
 import com.example.lolvoices.dataClasses.ChampionAudio

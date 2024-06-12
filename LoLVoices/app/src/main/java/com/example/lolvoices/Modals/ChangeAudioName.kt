@@ -32,7 +32,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lolvoices.Components.Recurrentes.BordesDoraditos
-import com.example.lolvoices.RoomGestor
+import com.example.lolvoices.ViewModels.RoomGestor
 import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.ui.theme.ColorDorado
 

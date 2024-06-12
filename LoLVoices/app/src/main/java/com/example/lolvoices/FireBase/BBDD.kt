@@ -44,7 +44,6 @@ class FireStoreBBDD () {
                 Log.d("TAG", "Query successful. Documents fetched: ${result.size()}")
                 val puntuacionesList = mutableListOf<Map<String, Any>>()
                 for (document in result) {
-                    Log.d("TAG", "Document: ${document.id} => ${document.data}")
                     puntuacionesList.add(document.data)
                 }
                 callback(puntuacionesList)

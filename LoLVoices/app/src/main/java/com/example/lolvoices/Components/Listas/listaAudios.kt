@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lolvoices.Components.AudioPlayerViewModel
+import com.example.lolvoices.ViewModels.AudioPlayerViewModel
 import com.example.lolvoices.Components.Recurrentes.LoadingIndicator
 import com.example.lolvoices.Components.Recurrentes.ProgressIndicator
 import com.example.lolvoices.R

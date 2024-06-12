@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -49,11 +51,15 @@ fun PuntuacionesScreen(navController: NavHostController) {
     var searchText by remember { mutableStateOf("") }
 
     val puntuaciones = remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    var isLoaded by remember {
+        mutableStateOf(false)
+    }
 
     // Fetch puntuaciones from Firestore
     LaunchedEffect(Unit) {
         FireStoreBBDD().getPuntuaciones { fetchedPuntuaciones ->
             puntuaciones.value = fetchedPuntuaciones
+            isLoaded = true
 
         }
     }
@@ -94,7 +100,7 @@ fun PuntuacionesScreen(navController: NavHostController) {
                         Icon(Icons.Default.Home, contentDescription = "Agregar", tint = Color.White)
 
                     }
-                    IconButton(onClick = { navController.popBackStack()}) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             painter = painterResource(id = R.drawable.videogame),
                             contentDescription = "Actualizar",
@@ -103,7 +109,7 @@ fun PuntuacionesScreen(navController: NavHostController) {
                     }
                 },
             )
-        },content = { innerpadding ->
+        }, content = { innerpadding ->
             // Pantalla de juego
             Box(
                 modifier = Modifier
@@ -120,32 +126,48 @@ fun PuntuacionesScreen(navController: NavHostController) {
                         .fillMaxSize()
                         .alpha(0.15f)
                 )
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerpadding)
-                ) {
-                    Divider(color = ColorDorado, thickness = 1.dp)
-                    LazyColumn {
-                        items(puntuaciones.value) { item ->
-                            val puntuacion = item["puntuacion"] as? Long ?: 0
-                            val usuario = item["usuario"] as? String ?: "Guess"
-                            // Display puntuacion and usuario
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Text(text = "${puntuaciones.value.indexOf(item) + 1}",
-                                    color = ColorDorado,
-                                    modifier = Modifier.padding(end = 16.dp)
-                                )
-                                Text(text = usuario, modifier = Modifier.weight(3f), color = Color.White)
-                                Text(
-                                    text = "$puntuacion",
-                                    modifier = Modifier.weight(1f),
-                                    color = ColorDorado
-                                )
+
+                if (!isLoaded){
+                    // Muestra un mensaje de carga
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        CircularProgressIndicator(progress = 0.5f, color = ColorDorado)
+                    }
+                } else {
+                    Column(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(innerpadding)
+                    ) {
+                        Divider(color = ColorDorado, thickness = 1.dp)
+                        LazyColumn {
+                            items(puntuaciones.value) { item ->
+                                val puntuacion = item["puntuacion"] as? Long ?: 0
+                                val usuario = item["usuario"] as? String ?: "Guess"
+                                // Display puntuacion and usuario
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "${puntuaciones.value.indexOf(item) + 1}",
+                                        color = ColorDorado,
+                                        modifier = Modifier.padding(end = 16.dp)
+                                    )
+                                    Text(
+                                        text = usuario,
+                                        modifier = Modifier.weight(3f),
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "$puntuacion",
+                                        modifier = Modifier.weight(1f),
+                                        color = ColorDorado
+                                    )
+                                }
                             }
                         }
                     }

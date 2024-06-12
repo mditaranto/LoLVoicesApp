@@ -55,7 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.example.lolvoices.Components.AudioPlayerViewModel
+import com.example.lolvoices.ViewModels.AudioPlayerViewModel
 import com.example.lolvoices.Components.Recurrentes.LoadingIndicator
 import com.example.lolvoices.Components.Recurrentes.ProgressIndicator
 import com.example.lolvoices.Funciones.manejarTurno

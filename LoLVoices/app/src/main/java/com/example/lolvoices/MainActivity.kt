@@ -11,8 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.room.Room
-import com.example.lolvoices.Components.AudioPlayerViewModel
-import com.example.lolvoices.FireBase.FireStoreBBDD
+import com.example.lolvoices.ViewModels.AudioPlayerViewModel
 import com.example.lolvoices.Vistas.CampeonScreen
 import com.example.lolvoices.Vistas.CampeonesScreen
 import com.example.lolvoices.Vistas.FavoritosScreen
@@ -20,6 +19,7 @@ import com.example.lolvoices.Vistas.Juego.JuegoScreen
 import com.example.lolvoices.Vistas.Juego.JueguitoScreen
 import com.example.lolvoices.Vistas.LoadingScreen
 import com.example.lolvoices.Vistas.PuntuacionesScreen
+import com.example.lolvoices.dataClasses.ChampionData
 import com.example.lolvoices.dataClasses.ChampionLoader
 import com.example.lolvoices.room.VoicesDDBB
 import com.example.lolvoices.ui.theme.LoLVoicesTheme
@@ -37,7 +37,11 @@ class MainActivity : ComponentActivity() {
         database = Room.databaseBuilder(this, VoicesDDBB::class.java, "VoicesDDBB").build()
 
         val championData = runBlocking(Dispatchers.IO) {
-            ChampionLoader.loadChampions()
+            try {
+                ChampionLoader.loadChampions()
+            } catch (e: Exception) {
+                emptyList<ChampionData>() // Devuelve una lista vacía en caso de error
+            }
         }
 
         enableEdgeToEdge()

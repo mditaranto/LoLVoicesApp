@@ -1,8 +1,9 @@
-package com.example.lolvoices
+package com.example.lolvoices.ViewModels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lolvoices.MainActivity
 import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.dataClasses.ChampionData
 import com.example.lolvoices.room.Entidades.Audio

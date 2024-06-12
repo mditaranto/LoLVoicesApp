@@ -44,11 +44,11 @@ import androidx.compose.ui.unit.times
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.example.lolvoices.Components.AudioPlayerViewModel
+import com.example.lolvoices.ViewModels.AudioPlayerViewModel
 import com.example.lolvoices.Components.Recurrentes.BottomAudioBar
 import com.example.lolvoices.Components.Listas.ListaAudios
 import com.example.lolvoices.R
-import com.example.lolvoices.RoomGestor
+import com.example.lolvoices.ViewModels.RoomGestor
 import com.example.lolvoices.dataClasses.ChampionAudio
 import com.example.lolvoices.dataClasses.ChampionData
 import com.example.lolvoices.room.Entidades.Audio

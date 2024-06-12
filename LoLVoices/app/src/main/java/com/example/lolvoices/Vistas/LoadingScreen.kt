@@ -7,9 +7,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.example.lolvoices.Components.AudioPlayerViewModel
+import com.example.lolvoices.ViewModels.AudioPlayerViewModel
 import com.example.lolvoices.Components.GifImage
 import com.example.lolvoices.dataClasses.ChampionData
 import kotlinx.coroutines.delay
