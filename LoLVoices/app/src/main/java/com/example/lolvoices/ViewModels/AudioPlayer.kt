@@ -24,7 +24,7 @@ class AudioPlayerViewModel : ViewModel() {
         url: String,
         Played: (Boolean) -> Unit = {}
     ) {
-        // Si no existe la clave en el mapa, se crea un nuevo LiveData
+        // Si no existe la clave en el mapa, se crea un nuevo LiveData`
         if (!_isLoadingMap.containsKey(url)) {
             _isLoadingMap[url] = MutableLiveData(true)
         }
